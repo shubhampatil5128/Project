@@ -1,25 +1,22 @@
 provider "aws" {
-  region     = "us-east-2"
-  access_key = "AKIAQLKBBQOS3PFOCKHA"
-  secret_key = "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"
-}
+  region= "us-east-2"
 
-resource "aws_vpc" "jenkins" {
-  cidr_block       = "172.16.0.0/16"
+resource "aws_vpc" "argo" {
+  cidr_block       = "172.17.0.0/16"
   instance_tenancy = "default"
 
   tags = {
-    Name = "jenkins-vpc"
+    Name = "argo-vpc"
   }
 }
 
-resource "aws_subnet" "public" {
-  vpc_id            = aws_vpc.jenkins.id
-  cidr_block        = "172.16.0.0/24"
+resource "aws_subnet" "publicsub" {
+  vpc_id            = aws_vpc.argo.id
+  cidr_block        = "172.17.0.0/24"
   availability_zone = "us-east-2a"
 
   tags = {
-    Name = "public"
+    Name = "publicsub"
   }
 }
 
@@ -33,30 +30,30 @@ resource "aws_subnet" "public" {
   }
 }*/
 
-resource "aws_internet_gateway" "jenkins-igw" {
-  vpc_id = aws_vpc.jenkins.id
+resource "aws_internet_gateway" "argo-igw" {
+  vpc_id = aws_vpc.argo.id
 
   tags = {
-    Name = "jenkins-igw"
+    Name = "argo-igw"
   }
 }
 
-resource "aws_route_table" "jenkins-route" {
-  vpc_id = aws_vpc.jenkins.id
+resource "aws_route_table" "argo-route" {
+  vpc_id = aws_vpc.argo.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.jenkins-igw.id
+    gateway_id = aws_internet_gateway.argo-igw.id
   }
 
   tags = {
-    Name = "jenkins-route"
+    Name = "argo-route"
   }
 }
 
 resource "aws_route_table_association" "a" {
-  subnet_id      = aws_subnet.public.id
-  route_table_id = aws_route_table.jenkins-route.id
+  subnet_id      = aws_subnet.publicsub.id
+  route_table_id = aws_route_table.argo-route.id
 }
 
 /*resource "aws_route_table_association" "a2" {
@@ -174,10 +171,10 @@ resource "aws_route_table_association" "a" {
   }
 }*/
 
-resource "aws_security_group" "jenkins-sg" {
-  name        = "jenkins-sg"
+resource "aws_security_group" "argo-sg" {
+  name        = "argo-sg"
   description = "Allow TLS inbound traffic"
-  vpc_id      =  aws_vpc.jenkins.id
+  vpc_id      =  aws_vpc.argo.id
 
   ingress {
     description = "HTTPS port"
@@ -188,7 +185,7 @@ resource "aws_security_group" "jenkins-sg" {
   }
 
   ingress {
-    description = "JENKINS port"
+    description = "argo port"
     from_port   = 8080
     to_port     = 8080
     protocol    = "tcp"
@@ -218,7 +215,7 @@ resource "aws_security_group" "jenkins-sg" {
   }
 
   tags = {
-    Name = "jenkins-sg"
+    Name = "argo-sg"
   }
 }
 
@@ -237,22 +234,13 @@ resource "aws_volume_attachment" "ebs_jen" {
   instance_id = aws_instance.jenkins.id
 }*/
 
-resource "aws_instance" "jenkins" {
+resource "aws_instance" "argo" {
   ami                         = "ami-00399ec92321828f5"
   instance_type               = "t2.medium"
-  subnet_id                   =  aws_subnet.public.id
-  vpc_security_group_ids      =  ["${aws_security_group.jenkins-sg.id}"]
+  subnet_id                   =  aws_subnet.publicsub.id
+  vpc_security_group_ids      =  ["${aws_security_group.argo-sg.id}"]
   associate_public_ip_address = true
   key_name                    = "shu"
 
 }
 
-/*resource "aws_instance" "Argo" {
-  ami                         = "ami-00399ec92321828f5"
-  instance_type               = "t2.medium"
-  subnet_id                   =  aws_subnet.public2.id
-  vpc_security_group_ids      =  ["${aws_security_group.jenkins-sg.id}"]
-  associate_public_ip_address = true
-  key_name                    = "shu"
-
-}*/
