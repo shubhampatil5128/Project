@@ -235,7 +235,7 @@ resource "aws_volume_attachment" "ebs_jen" {
 }*/
 
 resource "aws_instance" "argo" {
-  ami                         = "ami-00399ec92321828f5"
+  ami                         = "ami-01e36b7901e884a10"
   instance_type               = "t2.medium"
   subnet_id                   =  aws_subnet.publicsub.id
   vpc_security_group_ids      =  ["${aws_security_group.argo-sg.id}"]
