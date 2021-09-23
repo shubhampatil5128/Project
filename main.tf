@@ -1,6 +1,7 @@
 provider "aws" {
   region= "us-east-2"
-
+  
+}
 resource "aws_vpc" "argo" {
   cidr_block       = "172.17.0.0/16"
   instance_tenancy = "default"
